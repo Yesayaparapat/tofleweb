@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master TOEFL - Latihan Lengkap 80 Soalan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .option-btn { transition: all 0.2s ease; }
+        .correct { background-color: #10b981 !important; color: white !important; border-color: #059669 !important; }
+        .wrong { background-color: #ef4444 !important; color: white !important; border-color: #dc2626 !important; }
+        .disabled { pointer-events: none; opacity: 0.8; }
+        
+        /* Style for Passage with Line Numbers */
+        .passage-container {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        .line-numbers {
+            padding: 1.5rem 0.75rem;
+            background: #f1f5f9;
+            border-right: 1px solid #e2e8f0;
+            text-align: right;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            user-select: none;
+            line-height: 1.8;
+        }
+        .passage-content {
+            padding: 1.5rem;
+            line-height: 1.8;
+            font-size: 1rem;
+            color: #334155;
+            white-space: pre-wrap;
+            flex: 1;
+        }
+
+        .passage-img {
+            width: 100%;
+            height: auto;
+            border-radius: 1rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .nav-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1;
+            border-radius: 0.75rem;
+            border: 2px solid #e2e8f0;
+            font-weight: bold;
+            font-size: 0.875rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .nav-box.answered {
+            background-color: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+        .nav-box:hover {
+            border-color: #6366f1;
+            color: #6366f1;
+            background-color: #f5f3ff;
+        }
+        .nav-box.answered:hover {
+            opacity: 0.9;
+            background-color: #10b981;
+            color: white;
+        }
+
+        .sticky-nav { position: sticky; top: 1.5rem; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans text-slate-900 pb-20">
+
+    <div class="max-w-7xl mx-auto px-4 pt-8 lg:flex items-start gap-8">
+        <!-- Area Utama (Kiri) -->
+        <div class="flex-1">
+            <header class="text-center mb-10">
+                <h1 class="text-4xl font-extrabold text-indigo-900 mb-2">Simulasi TOEFL Lengkap</h1>
+                <p class="text-slate-600 font-medium">70 Soal Terintegrasi (Structure + Written + Full Reading Section)</p>
+                
+                <div class="mt-6 flex justify-center">
+                    <div class="bg-white/90 backdrop-blur shadow-xl border border-indigo-100 rounded-2xl px-8 py-3 flex items-center gap-6">
+                        <div class="text-center">
+                            <p class="text-[10px] uppercase font-bold text-slate-400">Skor</p>
+                            <p class="text-2xl font-black text-indigo-600"><span id="score">0</span> / 70</p>
+                        </div>
+                        <div class="h-10 w-px bg-slate-200"></div>
+                        <div class="text-center">
+                            <p class="text-[10px] uppercase font-bold text-slate-400">Progres</p>
+                            <p class="text-2xl font-black text-slate-700"><span id="answered">0</span> / 70</p>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex flex-wrap justify-center gap-2 mb-12">
+                <button onclick="setFilter('all')" class="filter-btn active px-6 py-2 rounded-full bg-indigo-600 text-white font-bold">Semua</button>
+                <button onclick="setFilter('structure')" class="filter-btn px-6 py-2 rounded-full bg-white text-slate-600 border border-slate-200 font-bold hover:bg-indigo-50">Structure</button>
+                <button onclick="setFilter('reading')" class="filter-btn px-6 py-2 rounded-full bg-white text-slate-600 border border-slate-200 font-bold hover:bg-indigo-50">Reading</button>
+            </div>
+
+            <div id="quiz-area" class="space-y-16 pb-20">
+                <!-- Questions injected here -->
+            </div>
+        </div>
+
+        <!-- Sidebar Navigasi (Kanan) -->
+        <aside class="w-full lg:w-80 shrink-0 hidden lg:block">
+            <div class="sticky-nav bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-bold text-slate-800">Navigasi Soal</h2>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Moodle Style</span>
+                </div>
+                <div id="nav-grid" class="grid grid-cols-5 gap-2 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
+                    <!-- Nav boxes injected here -->
+                </div>
+                <div class="mt-6 pt-6 border-t border-slate-50">
+                    <div class="flex items-center gap-2 text-xs font-medium text-slate-500">
+                        <div class="w-3 h-3 rounded bg-emerald-500"></div>
+                        <span>Sudah Dijawab</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-medium text-slate-500 mt-2">
+                        <div class="w-3 h-3 rounded border-2 border-slate-200"></div>
+                        <span>Belum Dijawab</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        const quizData = [
+            // --- SECTION 1: STRUCTURE & WRITTEN (1-20) ---
+            { section: "structure", qNum: 1, q: "__________ team sports require cooperation.", a:"c", exp:"Determiner 'all' diperlukan sebelum plural countable nouns.", o:{a:"of all", b:"they are all", c:"all", d:"why are all"} },
+            { section: "structure", qNum: 2, q: "Anyone who has ever pulled weeds from a garden __________ roots firmly anchor plants to the soil.", a:"b", exp:"'Anyone' (singular) butuh verb 'is'. 'That' mengawali klausa baru.", o:{a:"is well aware of", b:"is well aware that", c:"well aware", d:"well aware that"} },
+            { section: "structure", qNum: 3, q: "Centuries of erosion have exposed __________ rock surfaces in the Painted Desert of northern Arizona.", a:"c", exp:"Compound adjective 'rainbow-colored' paling tepat menerangkan rock surfaces.", o:{a:"in colors of the rainbow", b:"colored like a rainbow", c:"rainbow-colored", d:"a rainbow's coloring"} },
+            { section: "structure", qNum: 4, q: "The higher the temperature of a molecule, __________.", a:"a", exp:"Double comparative: The higher..., the more energy...", o:{a:"the more energy it has", b:"than it has more energy", c:"more energy has it", d:"it has more energy"} },
+            { section: "structure", qNum: 5, q: "Frontier surgeon Ephrain MacDonald had to perform operation __________ anesthesia.", a:"c", exp:"Tanpa pembiusan = 'without anesthesia'.", o:{a:"no", b:"not having", c:"without", d:"there wasn't"} },
+            { section: "structure", qNum: 6, q: "__________ young, chimpanzees are easily trained.", a:"b", exp:"Reduced clause: 'When (they are) young'.", o:{a:"when are", b:"when", c:"they are", d:"when they"} },
+            { section: "structure", qNum: 7, q: "A person of __________ age may suffer from defects of vision.", a:"d", exp:"'Any' merujuk kepada usia berapapun.", o:{a:"every", b:"some", c:"certain", d:"any"} },
+            { section: "structure", qNum: 8, q: "__________ have settled, one of their first concerns has been to locate an adequate water supply.", a:"a", exp:"'Wherever people' mengawali klausa keterangan tempat.", o:{a:"wherever people", b:"there are people who", c:"whether people", d:"people"} },
+            { section: "structure", qNum: 9, q: "If a bar magnet is __________, the two pieces form two complete magnets, each with a north and south pole.", a:"a", exp:"Passive voice: is + broken (V3).", o:{a:"broken", b:"broke", c:"breaking", d:"break"} },
+            { section: "structure", qNum: 10, q: "The type of plant and animal life... depends on the soil of the pond, __________, and the pond's location.", a:"c", exp:"Parallel structure: soil, quality, location (semua noun phrases).", o:{a:"what the quality of the water is", b:"how is the water quality", c:"the quality of the water", d:"what is the water quality"} },
+            
+            // Written Expression (11-20)
+            { section: "structure", qNum: 16, q: "Ceramics can be <span class='underline'>harder</span> (A), <span class='underline'>light</span> (B), and <span class='underline'>more resistant</span> (C) to heat <span class='underline'>than</span> (D) metals.", a:"b", exp:"Harus parallel: 'lighter' (comparative).", o:{a:"A", b:"B", c:"C", d:"D"} },
+            { section: "structure", qNum: 17, q: "Not everyone realized that the <span class='underline'>most largest</span> (C) organ of the human body is the skin.", a:"c", exp:"Superlative 'largest' tidak perlu 'most'.", o:{a:"A", b:"B", c:"C", d:"D"} },
+            { section: "structure", qNum: 18, q: "Mold is extremely <span class='underline'>destruction</span> (B) to books in a library.", a:"b", exp:"Harus adjective: 'destructive'.", o:{a:"A", b:"B", c:"C", d:"D"} },
+            { section: "structure", qNum: 19, q: "Sidney Lanier achieved fame <span class='underline'>both</span> (B) as a poet <span class='underline'>or</span> (C) as a symphony musician.", a:"c", exp:"Pasangan 'both' adalah 'and'.", o:{a:"A", b:"B", c:"C", d:"D"} },
+            { section: "structure", qNum: 20, q: "The horses <span class='underline'>used</span> (B) <span class='underline'>play</span> (B) polo are not of any special breed or of any definite size.", a:"b", exp:"Seharusnya 'used to play'.", o:{a:"A", b:"B", c:"C", d:"D"} },
+            { section: "structure", qNum: 21, q: "A tapestry consist of a foundation weave... <span class='underline'>which across</span> (B) are passed different colored threads...", a:"b", exp:"Prepositional phrase: 'across which'.", o:{a:"A", b:"B", c:"C", d:"D"} },
+            { section: "structure", qNum: 22, q: "The works of early American woodcarvers had <span class='underline'>many</span> (B) artistic qualities...", a:"b", exp:"Sesuai dokumen: Qualities adalah plural, many sering dianggap berlebihan di sini.", o:{a:"A", b:"B", c:"C", d:"D"} },
+            { section: "structure", qNum: 23, q: "Perhaps mankind's first important musical influence <span class='underline'>were</span> (C) the songs of birds.", a:"c", exp:"Subjek 'influence' (singular) butuh 'was'.", o:{a:"A", b:"B", c:"C", d:"D"} },
+            { section: "structure", qNum: 24, q: "...their basic aims—to understand and control nature—<span class='underline'>they are</span> (D) very similar.", a:"d", exp:"Double subject: buang 'they'.", o:{a:"A", b:"B", c:"C", d:"D"} },
+            { section: "structure", qNum: 25, q: "It was in a cave near Magdalena... <span class='underline'>when</span> (A) the oldest known ears of cultivated corn were discovered.", a:"a", exp:"Relative pronoun tempat: 'where'.", o:{a:"A", b:"B", c:"C", d:"D"} },
+
+            // --- SECTION 2: READING ---
+            // PASSAGE 1: COOLIDGE (Questions 1-9)
+            { section: "reading", passageImg: "soal1sampai9.png", q: "1. According to the passage, when did the United States experience a brief depression?", a:"d", o:{a:"In the late nineteenth century", b:"Before the First World War", c:"During the First World War", d:"In the early 1920's"} },
+            { section: "reading", passageImg: "soal1sampai9.png", q: "2. The word 'boom' in line 5 is closest in meaning to:", a:"c", o:{a:"noise", b:"strike", c:"expansion", d:"market"} },
+            { section: "reading", passageImg: "soal1sampai9.png", q: "3. The phrase 'called for' in line 10 is closest in meaning to:", a:"b", o:{a:"named", b:"required", c:"described", d:"considered"} },
+            { section: "reading", passageImg: "soal1sampai9.png", q: "4. Growth in automobile production caused increase in demand for:", a:"a", o:{a:"rubber", b:"clothing", c:"electric power", d:"radios"} },
+            { section: "reading", passageImg: "soal1sampai9.png", q: "5. All were relatively new in 1920s EXCEPT:", a:"a", o:{a:"steel", b:"radios", c:"automobiles", d:"refrigerators"} },
+            { section: "reading", passageImg: "soal1sampai9.png", q: "6. The word 'host' in line 17 means:", a:"d", o:{a:"entertainer", b:"sample", c:"investment", d:"large number"} },
+            { section: "reading", passageImg: "soal1sampai9.png", q: "7. Inferred characters in novel are:", a:"a", o:{a:"wealthy people", b:"farmers", c:"writers", d:"average citizens"} },
+            { section: "reading", passageImg: "soal1sampai9.png", q: "8. Inferred about US farms in 1920s:", a:"d", o:{a:"Rapid growth", b:"Attracted workers", c:"Gasoline benefit", d:"Less prosperous than other businesses"} },
+            { section: "reading", passageImg: "soal1sampai9.png", q: "9. Paragraph following most likely discusses:", a:"c", o:{a:"Fitzgerald's life", b:"Consumer costs", c:"Economic condition of farms", d:"Popular novels"} },
+
+            // PASSAGE 2: PIANO (Questions 10-19)
+            { section: "reading", passageImg: "soal10sampai19.png", q: "10. What does the passage mainly discuss?", a:"d", o:{a:"Parts of piano", b:"Kinds of pianos", c:"Composers", d:"The popularity of the piano"} },
+            { section: "reading", passageImg: "soal10sampai19.png", q: "11. The word 'place' in line 1 means:", a:"c", o:{a:"performance", b:"region", c:"position", d:"arrangement"} },
+            { section: "reading", passageImg: "soal10sampai19.png", q: "12. The word 'it' in line 2 refers to:", a:"a", o:{a:"piano", b:"place", c:"music", d:"band"} },
+            { section: "reading", passageImg: "soal10sampai19.png", q: "13. The word 'central' in line 14 means:", a:"b", o:{a:"accessible", b:"important", c:"convenient", d:"related"} },
+            { section: "reading", passageImg: "soal10sampai19.png", q: "14. Inferred about piano industry between 1861-1914:", a:"b", o:{a:"Fewer built", b:"Many wanted to learn", c:"Keyboard invention", d:"Bands replaced piano"} },
+            { section: "reading", passageImg: "soal10sampai19.png", q: "15. The word 'virtuoso' in line 19 means:", a:"c", o:{a:"youthful", b:"dedicated", c:"skilled", d:"noble"} },
+            { section: "reading", passageImg: "soal10sampai19.png", q: "16. The word 'themselves' in line 22 refers to:", a:"c", o:{a:"pianos", b:"compositions", c:"older ticklers", d:"techniques"} },
+            { section: "reading", passageImg: "soal10sampai19.png", q: "17. Why audiences amazed by ticklers?", a:"b", o:{a:"No music looking", b:"Exciting performances", c:"Younger", d:"Accompanied"} },
+            { section: "reading", passageImg: "soal10sampai19.png", q: "18. NOT true of professional players:", a:"a", o:{a:"Trained in Europe", b:"Appealed to audiences", c:"Little formal training", d:"More skilled at popular music"} },
+            { section: "reading", passageImg: "soal10sampai19.png", q: "19. Paragraph following discusses:", a:"d", o:{a:"classical music", b:"competitions", c:"instruction", d:"jazz piano music"} },
+
+            // PASSAGE 3: FLIGHT (Questions 20-29)
+            { section: "reading", passageImg: "soal20sampai29.png", q: "20. What does the passage mainly discuss?", a:"b", o:{a:"Early drawings", b:"The history of flight", c:"Ornithopters", d:"Ancient myths"} },
+            { section: "reading", passageImg: "soal20sampai29.png", q: "21. The word 'sporadic' in line 3 means:", a:"c", o:{a:"scientific", b:"successful", c:"occasional", d:"courageous"} },
+            { section: "reading", passageImg: "soal20sampai29.png", q: "22. Problem with ornithopter?", a:"d", o:{a:"Poorly constructed", b:"Hold one person", c:"Launched high", d:"Required more strength than human provide"} },
+            { section: "reading", passageImg: "soal20sampai29.png", q: "23. The word 'it' in line 8 refers to:", a:"c", o:{a:"source", b:"motion", c:"ornithopter", d:"power"} },
+            { section: "reading", passageImg: "soal20sampai29.png", q: "24. The word 'buoyed' in line 11 means:", a:"d", o:{a:"collapsed", b:"designed", c:"attempted", d:"raised"} },
+            { section: "reading", passageImg: "soal20sampai29.png", q: "25. The word 'it' in line 13 refers to:", a:"b", o:{a:"balloon", b:"warm air", c:"bag", d:"paper"} },
+            { section: "reading", passageImg: "soal20sampai29.png", q: "26. Inferred about gliders before 19th century?", a:"c", o:{a:"No transport", b:"Hot air relied", c:"Not well designed", d:"Long airborne"} },
+            { section: "reading", passageImg: "soal20sampai29.png", q: "27. Statement supported by passage:", a:"a", o:{a:"Humans fascinated with flying", b:"Dependent on bird imitation", c:"Steady evolution", d:"Gliders preferred to balloons"} },
+            { section: "reading", passageImg: "soal20sampai29.png", q: "28. Where mentions historical account?", a:"a", o:{a:"Lines 4-6", b:"Lines 9-11", c:"Lines 17-18", d:"Lines 22-23"} },
+            { section: "reading", passageImg: "soal20sampai29.png", q: "29. Passage probably continues with:", a:"b", o:{a:"dangers", b:"airplane development", c:"glider similarity", d:"ornithopter improvement"} },
+
+            // PASSAGE 4: COMSTOCK LODE (Questions 30-39)
+            { section: "reading", passageImg: "soal30sampai39.png", q: "30. The word 'It' in line 2 refers to:", a:"a", o:{a:"Comstock Lode", b:"history", c:"productivity", d:"peak"} },
+            { section: "reading", passageImg: "soal30sampai39.png", q: "31. The word 'scattered' in line 4 means:", a:"b", o:{a:"combined", b:"spread out", c:"identified", d:"preserved"} },
+            { section: "reading", passageImg: "soal30sampai39.png", q: "32. Where describes a lode?", a:"a", o:{a:"Lines 4-6", b:"Lines 10-11", c:"Lines 13-16", d:"Lines 21-22"} },
+            { section: "reading", passageImg: "soal30sampai39.png", q: "33. Main idea of second paragraph?", a:"b", o:{a:"Most successful mines", b:"Severe problems affecting operation", c:"Railroad profit", d:"Thousands employed"} },
+            { section: "reading", passageImg: "soal30sampai39.png", q: "34. The word 'hampered' in line 11 means:", a:"d", o:{a:"overwhelmed", b:"deepened", c:"prolonged", d:"disrupted"} },
+            { section: "reading", passageImg: "soal30sampai39.png", q: "35. The word 'acute' in line 12 means:", a:"c", o:{a:"fiery", b:"unsolvable", c:"serious", d:"sensitive"} },
+            { section: "reading", passageImg: "soal30sampai39.png", q: "36. Signaled by hot igneous rock?", a:"d", o:{a:"Flooding", b:"Uneven deposits", c:"Low water", d:"Continuing mineralization"} },
+            { section: "reading", passageImg: "soal30sampai39.png", q: "37. Purpose of Sutro Tunnel?", a:"a", o:{a:"Relieve flooding and bring air", b:"Miners transport", c:"Pump out hot water", d:"Ore transport"} },
+            { section: "reading", passageImg: "soal30sampai39.png", q: "38. The word 'obstacles' in line 24 means:", a:"d", o:{a:"injuries", b:"objects", c:"qualifications", d:"difficulties"} },
+            { section: "reading", passageImg: "soal30sampai39.png", q: "39. Comparison to railroad project because:", a:"c", o:{a:"Quick", b:"Young workers", c:"Challenging", d:"Money lost"} },
+
+            // PASSAGE 5: WOODPECKERS (Questions 40-50)
+            { section: "reading", passageImg: "soal40sampai50.png", q: "40. What does the passage mainly discuss?", a:"b", o:{a:"Sounds", b:"Characteristics of one kind of bird", c:"Insects", d:"Damage"} },
+            { section: "reading", passageImg: "soal40sampai50.png", q: "41. The word 'excavate' in line 1 means:", a:"a", o:{a:"dig", b:"protect", c:"clean", d:"investigate"} },
+            { section: "reading", passageImg: "soal40sampai50.png", q: "42. The word 'that' in line 4 refers to:", a:"c", o:{a:"hole", b:"chamber", c:"wood", d:"supply"} },
+            { section: "reading", passageImg: "soal40sampai50.png", q: "43. Identified by:", a:"c", o:{a:"Melody", b:"Nest design", c:"Drumming pattern", d:"Beak size"} },
+            { section: "reading", passageImg: "soal40sampai50.png", q: "44. The word 'interval' in line 12 means:", a:"b", o:{a:"note", b:"pause", c:"call", d:"tapping"} },
+            { section: "reading", passageImg: "soal40sampai50.png", q: "45. 'As well as' in line 14 means:", a:"a", o:{a:"besides", b:"easily", c:"after", d:"instead of"} },
+            { section: "reading", passageImg: "soal40sampai50.png", q: "46. Wryneck differs because it does NOT:", a:"d", o:{a:"long tongue", b:"noise", c:"build nest", d:"rigid tail"} },
+            { section: "reading", passageImg: "soal40sampai50.png", q: "47. The word 'which' in line 19 refers to:", a:"b", o:{a:"acorns", b:"holes", c:"trunks", d:"skills"} },
+            { section: "reading", passageImg: "soal40sampai50.png", q: "48. The word 'massive' in line 21 means:", a:"c", o:{a:"secret", b:"potential", c:"huge", d:"fresh"} },
+            { section: "reading", passageImg: "soal40sampai50.png", q: "49. NOT mentioned eating insects:", a:"d", o:{a:"Sapsucker", b:"Green woodpecker", c:"Wryneck", d:"Acorn woodpecker"} },
+            { section: "reading", passageImg: "soal40sampai50.png", q: "50. Sapsucker behavior different how?", a:"d", o:{a:"ground search", b:"no drilling", c:"stores food", d:"chooses sap trees"} }
+        ];
+
+        let score = 0;
+        let answered = 0;
+        let currentFilter = 'all';
+        let currentIdx = 0; // The index relative to the FILTERED list
+        const answeredIndices = new Set(); // Stores the ORIGINAL index from quizData
+
+        // Helper to get filtered data with original indices preserved
+        function getFilteredData() {
+            return quizData
+                .map((item, idx) => ({ ...item, originalIdx: idx }))
+                .filter(item => currentFilter === 'all' || item.section === currentFilter);
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-area');
+            container.innerHTML = '';
+            
+            const filtered = getFilteredData();
+            const item = filtered[currentIdx];
+            if (!item) return;
+
+            const qDiv = document.createElement('div');
+            qDiv.className = "quiz-item bg-white rounded-3xl p-8 shadow-sm border border-slate-100 animate-in fade-in duration-500";
+            
+            let sectionLabel = item.section === 'structure' ? 'Structure' : 'Reading';
+            let labelColor = item.section === 'structure' ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700';
+            
+            let passageHtml = "";
+            if (item.passageImg) {
+                passageHtml = `
+                    <div class="mb-4">
+                        <img src="${item.passageImg}" alt="Reading Passage" class="passage-img" />
+                    </div>
+                `;
+            }
+
+            qDiv.innerHTML = `
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase ${labelColor}">${sectionLabel}</span>
+                        <span class="text-slate-400 font-medium text-sm">#${currentIdx + 1} of ${filtered.length}</span>
+                    </div>
+                    ${item.originalIdx !== undefined ? `<span class="text-[10px] font-bold text-slate-300 uppercase">Original ID: ${item.originalIdx + 1}</span>` : ''}
+                </div>
+                
+                ${passageHtml}
+
+                <p class="text-xl font-semibold text-slate-800 mb-8 leading-relaxed">${item.q}</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="options-area">
+                    ${['a','b','c','d'].map(letter => `
+                        <button onclick="handleChoice(${item.originalIdx}, '${letter}')" 
+                                class="option-btn text-left p-4 rounded-2xl border-2 border-slate-100 hover:border-indigo-200 hover:bg-indigo-50 flex items-center gap-4 group">
+                            <span class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-500 group-hover:bg-indigo-100 group-hover:text-indigo-600 uppercase text-xs">${letter}</span>
+                            <span class="flex-1 font-medium text-slate-600">${item.o[letter]}</span>
+                        </button>
+                    `).join('')}
+                </div>
+                
+                <div id="feedback-area" class="mt-8 hidden p-5 rounded-2xl border">
+                    <p id="result-text" class="font-bold text-lg mb-1"></p>
+                    <p id="exp-text" class="text-sm opacity-90"></p>
+                </div>
+
+                <div class="flex justify-between mt-12 pt-8 border-t border-slate-50">
+                    <button onclick="prevQuestion()" class="px-8 py-3 bg-slate-100 rounded-2xl font-bold text-slate-600 hover:bg-slate-200 transition-colors ${currentIdx === 0 ? 'opacity-30 pointer-events-none' : ''}">
+                        &larr; Sebelumnya
+                    </button>
+                    <button onclick="nextQuestion()" class="px-8 py-3 bg-indigo-600 rounded-2xl font-bold text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all ${currentIdx === filtered.length - 1 ? 'opacity-30 pointer-events-none' : ''}">
+                        Selanjutnya &rarr;
+                    </button>
+                </div>
+            `;
+            container.appendChild(qDiv);
+            renderNavigation();
+        }
+
+        function renderNavigation() {
+            const navGrid = document.getElementById('nav-grid');
+            if(!navGrid) return;
+            navGrid.innerHTML = '';
+            
+            const filtered = getFilteredData();
+            
+            filtered.forEach((item, idx) => {
+                const box = document.createElement('div');
+                const isAnswered = answeredIndices.has(item.originalIdx);
+                const isActive = idx === currentIdx;
+                box.className = `nav-box ${isAnswered ? 'answered' : ''} ${isActive ? 'ring-4 ring-indigo-200 border-indigo-500 text-indigo-600' : ''}`;
+                box.innerText = idx + 1;
+                box.onclick = () => jumpToQuestion(idx);
+                navGrid.appendChild(box);
+            });
+        }
+
+        window.jumpToQuestion = function(idx) {
+            currentIdx = idx;
+            renderQuiz();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.nextQuestion = function() {
+            const filtered = getFilteredData();
+            if(currentIdx < filtered.length - 1) {
+                currentIdx++;
+                renderQuiz();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        window.prevQuestion = function() {
+            if(currentIdx > 0) {
+                currentIdx--;
+                renderQuiz();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        window.handleChoice = function(originalIdx, choice) {
+            const item = quizData[originalIdx];
+            const optContainer = document.getElementById('options-area');
+            const buttons = optContainer.querySelectorAll('button');
+            const feedback = document.getElementById('feedback-area');
+            const resultText = document.getElementById('result-text');
+            const expText = document.getElementById('exp-text');
+
+            buttons.forEach(b => b.classList.add('disabled'));
+
+            const isCorrect = choice === item.a;
+            if(isCorrect) {
+                score++;
+                buttons[['a','b','c','d'].indexOf(choice)].classList.add('correct');
+                feedback.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+                resultText.innerText = "Benar! ✨";
+            } else {
+                buttons[['a','b','c','d'].indexOf(choice)].classList.add('wrong');
+                buttons[['a','b','c','d'].indexOf(item.a)].classList.add('correct');
+                feedback.classList.add('bg-rose-50', 'border-rose-200', 'text-rose-800');
+                resultText.innerText = `Salah ❌ (Jawaban: ${item.a.toUpperCase()})`;
+            }
+
+            expText.innerText = item.exp || "Jawaban ini didasarkan pada teks bacaan atau aturan tata bahasa yang berlaku.";
+            feedback.classList.remove('hidden');
+            
+            if(!answeredIndices.has(originalIdx)) {
+                answered++;
+                answeredIndices.add(originalIdx);
+                renderNavigation(); // Refresh grid to show progress
+            }
+            updateStats();
+        }
+
+        function updateStats() {
+            const scoreEl = document.getElementById('score');
+            const answeredEl = document.getElementById('answered');
+            if(scoreEl) scoreEl.innerText = score;
+            if(answeredEl) answeredEl.innerText = answered;
+        }
+
+        window.setFilter = function(f) {
+            currentFilter = f;
+            currentIdx = 0; // Reset to first page of new filter
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('bg-white', 'text-slate-600', 'border-slate-200');
+            });
+            event.target.classList.add('bg-indigo-600', 'text-white');
+            event.target.classList.remove('bg-white', 'text-slate-600', 'border-slate-200');
+            renderQuiz();
+        }
+
+        renderQuiz();
+    </script>
+</body>
+</html>
